@@ -354,7 +354,8 @@ module CanCan
     # Notice it is important to cache the ability object so it is not
     # recreated every time.
     def current_ability
-      @current_ability ||= ::Ability.new(current_user)
+      ability_scope = defined?(@ability_scope) ? @ability_scope : nil
+      @current_ability ||= ::Ability.new(current_user,ability_scope)
     end
 
     # Use in the controller or view to check the user's permission for a given action
