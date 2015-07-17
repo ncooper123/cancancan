@@ -10,10 +10,12 @@ module CanCan
     # value. True for "can" and false for "cannot". The next two arguments are the action
     # and subject respectively (such as :read, @project). The third argument is a hash
     # of conditions and the last one is the block passed to the "can" call.
-    def initialize(base_behavior, action, subject, conditions, block)
+    def initialize(base_behavior, action, is_class, subject, conditions, block)
       raise Error, "You are not able to supply a block with a hash of conditions in #{action} #{subject} ability. Use either one." if conditions.kind_of?(Hash) && !block.nil?
+      raise Error, "You must provide a block when setting a class rule." if block.nil? and @is_class
       @match_all = action.nil? && subject.nil?
       @base_behavior = base_behavior
+      @is_class = is_class
       @actions = [action].flatten
       @subjects = [subject].flatten
       @conditions = conditions || {}
@@ -23,7 +25,7 @@ module CanCan
     # Matches both the subject and action, not necessarily the conditions
     def relevant?(action, subject)
       subject = subject.values.first if subject.class == Hash
-      @match_all || (matches_action?(action) && matches_subject?(subject))
+      @match_all || (matches_action?(action) && matches_subject?(subject) && (!@block || @is_class == subject_class?(subject)))
     end
 
     # Matches the block or conditions hash
@@ -31,7 +33,8 @@ module CanCan
       if @match_all
         call_block_with_all(action, subject, extra_args)
       elsif @block
-          subject_class?(subject) ? false : @block.call(subject, *extra_args)
+        # Ah, a block was provided. How do we deal?!
+        @block.call(subject, *extra_args)
       elsif @conditions.kind_of?(Hash) && subject.class == Hash
         nested_subject_matches_conditions?(subject)
       elsif @conditions.kind_of?(Hash) && !subject_class?(subject)

@@ -133,7 +133,11 @@ module CanCan
     #   end
     #
     def can(action = nil, subject = nil, conditions = nil, &block)
-      rules << Rule.new(true, action, subject, conditions, block)
+      rules << Rule.new(true, action, false, subject, conditions, block)
+    end
+
+    def can_class(action = nil, subject = nil, conditions = nil, &block)
+      rules << Rule.new(true, action, true, subject, conditions, block)
     end
 
     # Defines an ability which cannot be done. Accepts the same arguments as "can".
@@ -149,7 +153,11 @@ module CanCan
     #   end
     #
     def cannot(action = nil, subject = nil, conditions = nil, &block)
-      rules << Rule.new(false, action, subject, conditions, block)
+      rules << Rule.new(false, action, false, subject, conditions, block)
+    end
+
+    def cannot_class(action = nil, subject = nil, conditions = nil, &block)
+      rules << Rule.new(false, action, true, subject, conditions, block)
     end
 
     # Alias one or more actions into another one.
